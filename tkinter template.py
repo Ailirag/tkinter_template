@@ -26,6 +26,8 @@ class Main(tk.Frame):
         self.all_columns_translate = 'ID,Name,Regexp,Creator'.split(',')
         self.all_columns_type_sqllite = 'INTEGER, TEXT, TEXT, TEXT'.split(',')
         self.height_window = 420
+        self.length_child_entry = 50
+        self.child_withxheight = '550x250'
         # End of edit
 
         self.all_width = sum(self.all_columns_width)
@@ -33,7 +35,10 @@ class Main(tk.Frame):
         self.db = DB(self.all_columns, self.all_columns_type_sqllite)
         self.init_main()
 
-
+    def button1_on_tree_action(self, field):
+        # command = (path_to_exe,' -',idconnect)
+        # subprocess.Popen(command, shell=True)
+        pass
 
     def init_main(self):
 
@@ -46,22 +51,8 @@ class Main(tk.Frame):
             self.tree.column(self.all_columns[index], width=self.all_columns_width[index], anchor=tk.CENTER)
             self.tree.heading(self.all_columns[index], text=self.all_columns_translate[index])
 
-        # self.tree.column("ID", width=15, anchor=tk.CENTER)
-        # self.tree.column("id_connect", width=135, anchor=tk.CENTER)
-        # self.tree.column("description", width=150, anchor=tk.CENTER)
-        # self.tree.column("comment", width=175, anchor=tk.CENTER)
-        # self.tree.column("address", width=175, anchor=tk.CENTER)
-        #
-        # self.tree.heading("ID", text='ID')
-        # self.tree.heading("id_connect", text='Адрес AnyDesk')
-        # self.tree.heading("description", text='Наименование')
-        # self.tree.heading("comment", text='Комментарий')
-        # self.tree.heading("address", text='Адрес')
-
-        self.tree.bind('<Double-Button-1>', lambda event: self.playconnect(self.tree.set(self.tree.selection()[0], '#2'),self.Entry_path_exe.get()))
-
+        self.tree.bind('<Double-Button-1>', lambda event: self.button1_on_tree_action(self.tree.set(self.tree.selection()[0], '#2')))
         self.tree.pack()
-
         #endbar START
 
         endbar = tk.Frame(bd=2)
@@ -104,13 +95,8 @@ class Main(tk.Frame):
 
         mas_arg.append(selectid)
         mas_arg = tuple(mas_arg)
-        # id_connect = data_to_sql['id']
-        # description = data_to_sql['name']
-        # comment = data_to_sql['comment']
-        # address = data_to_sql['address']
 
-        self.db.c.execute(f'''UPDATE data SET {','.join(set_string)} WHERE ID=?''',
-                     mas_arg)
+        self.db.c.execute(f'''UPDATE data SET {','.join(set_string)} WHERE ID=?''', mas_arg)
         self.db.conn.commit()
 
     def delete_record(self):
@@ -139,11 +125,6 @@ class Main(tk.Frame):
                 mas_quest.append('?')
                 mas_column.append(column)
 
-        # id_connect = data_to_sql['id']
-        # description = data_to_sql['name']
-        # comment = data_to_sql['comment']
-        # address = data_to_sql['address']
-
         self.db.c.execute(f"INSERT INTO data({','.join(mas_column)}) VALUES ({','.join(mas_quest)})",
                        tuple(mas_arg))
         self.db.conn.commit()
@@ -154,20 +135,16 @@ class Main(tk.Frame):
         for column in self.all_columns:
             if column != 'ID':
                 mas_argv.append('%'+search+'%')
-                mas_string.append(f'{column} like ?')
+                mas_string.append(f'{column} like ? ')
 
         if search == '':
             self.db.c.execute('''SELECT * FROM data ''')
         else:
-            searchvar = '%'+search+'%'
-            self.db.c.execute(f'''SELECT * FROM data WHERE {'OR'.join(mas_string)}''',
+            self.db.c.execute(f'''SELECT * FROM data WHERE {' OR '.join(mas_string)}''',
                          tuple(mas_argv))
         [self.tree.delete(i) for i in self.tree.get_children()]
         [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
 
-    def playconnect(self, idconnect, path_to_exe):
-        command = (path_to_exe,' -',idconnect)
-        subprocess.Popen(command, shell=True)
 
 class DB:
     def __init__(self, columns, columns_type):
@@ -211,44 +188,19 @@ class Child(tk.Toplevel):
                 start_position_y+=30
 
         start_position_y = 50
-        self.entry_dict = {}
+        self.entry_dict = dict()
         for index in range(1, len(self.view.all_columns)):
-            self.entry_dict['entry' + str(index)] = ttk.Entry(self)
+            self.entry_dict['entry' + str(index)] = ttk.Entry(self, width=self.view.length_child_entry)
             self.entry_dict['entry' + str(index)].place(x=200, y=start_position_y)
             start_position_y += 30
 
         self.title(dict_set['title'])
-        self.geometry(f'400x250+400+300')
-        self.resizable(False, False)
-
-        # label_id = tk.Label(self, text='ID:')
-        # label_id.place(x=50, y=50)
-        # label_name = tk.Label(self, text='Наименование:')
-        # label_name.place(x=50, y=80)
-        # label_comment = tk.Label(self, text='Комментарий:')
-        # label_comment.place(x=50, y=110)
-        # label_addres = tk.Label(self, text='Адрес:')
-        # label_addres.place(x=50, y=140)
-
-        # self.entry_id = ttk.Entry(self)
-        # self.entry_id.place(x=200, y=50)
-        #
-        # self.entry_name = ttk.Entry(self)
-        # self.entry_name.place(x=200, y=80)
-        #
-        # self.entry_comment = ttk.Entry(self)
-        # self.entry_comment.place(x=200, y=110)
-        #
-        # self.entry_addres = ttk.Entry(self)
-        # self.entry_addres.place(x=200, y=140)
+        self.geometry(f'{self.view.child_withxheight}+400+300')
+        # self.resizable(False, False)
 
         if not editdict == {}:
             for index in range(1, len(self.view.all_columns)):
                 self.entry_dict['entry' + str(index)].insert(0, editdict[self.view.all_columns[index]])
-            # self.entry_id.insert(0,editdict['id_connect'])
-            # self.entry_name.insert(0,editdict['description'])
-            # self.entry_addres.insert(0,editdict['address'])
-            # self.entry_comment.insert(0,editdict['comment'])
 
         btn_cancel = ttk.Button(self, text='Закрыть', command=self.destroy)
         btn_cancel.place(x=300, y=200)
@@ -265,12 +217,6 @@ class Child(tk.Toplevel):
         for index in range(1, len(self.view.all_columns)):
             result_dict[self.view.all_columns[index]] = self.entry_dict['entry' + str(index)].get()
         return result_dict
-       # return
-       #
-       #     {'name': self.entry_name.get(),
-       #   'id': self.entry_id.get(),
-       #   'comment': self.entry_comment.get(),
-       #   'address': self.entry_addres.get()}
 
     def data_is_full(self,data_to_sql):
         fill = True
