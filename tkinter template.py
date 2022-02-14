@@ -18,10 +18,7 @@ class IMAGE:
 
 class stdPath:
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    bin_dir = os.getcwd() + os.sep + 'bin'
-    dataBase_path = bin_dir + os.sep + 'DataBase.db'
-    if not os.path.exists(bin_dir):
-        os.mkdir(bin_dir)
+    dataBase_path = os.getcwd() + os.sep + 'DataBase.db'
 
 
 class Main(tk.Frame):
