@@ -1,7 +1,6 @@
 import os
 import configparser
 import sqlite3
-import base64
 import subprocess
 import tkinter as tk
 from tkinter import filedialog as fd
